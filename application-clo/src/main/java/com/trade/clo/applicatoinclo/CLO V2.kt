@@ -39,7 +39,7 @@ object Utils {
         value: String,
         startDate: LocalDate = LocalDate.of(2024, 1, 1),
         onError: () -> Unit,
-        onSuccess: (FlyerExtension.FlyerModel) -> Unit
+        onSuccess: (FlyerModel) -> Unit
     ) {
         FlyerExtension.setExtension(
             context = context,
@@ -47,9 +47,33 @@ object Utils {
             startDate = startDate,
             onError = { onError() },
             onSuccess = { status ->
-                onSuccess(status)
+                onSuccess(status.convert())
             }
         )
+    }
+
+    data class FlyerModel(
+        var status: FlyerStatus? = null,
+        var content: String? = null,
+    )
+
+    enum class FlyerStatus {
+        SUCCESS, ERROR
+    }
+
+    private fun FlyerExtension.FlyerModel.convert(): FlyerModel {
+        return FlyerModel(
+            status = this.status?.toFlyerModel(),
+            content = this.content
+        )
+    }
+
+    private fun FlyerExtension.FlyerStatus.toFlyerModel(): FlyerStatus? {
+        return when (this) {
+            custom.lib.droid.flyer_extension.FlyerExtension.FlyerStatus.SUCCESS -> FlyerStatus.SUCCESS
+            custom.lib.droid.flyer_extension.FlyerExtension.FlyerStatus.ERROR -> FlyerStatus.ERROR
+            else -> null
+        }
     }
 
 }
